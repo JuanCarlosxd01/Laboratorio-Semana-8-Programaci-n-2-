@@ -9,8 +9,8 @@ import java.util.Random;
 
 public final class EntrenadoresPredeterminados {
     private EntrenadoresPredeterminados() {}
-
-    private static Entrenador crear(String nombre, String... pokemones) {
+    
+    private static Entrenador crear(String nombre, String... pokemones) {   
         Entrenador entrenador = new Entrenador(nombre);
 
         for (String nombrePokemon : pokemones) {
@@ -19,20 +19,21 @@ public final class EntrenadoresPredeterminados {
 
         return entrenador;
     }
-
+    
     public static ListaEnlazada<Entrenador> todos() {
         ListaEnlazada<Entrenador> lista = new ListaEnlazada<>();
 
-        lista.insertar(crear("Ash", "Pikachu", "Charmander", "Squirtle"));
-        lista.insertar(crear("Misty", "Psyduck", "Squirtle", "Bulbasaur"));
-        lista.insertar(crear("Brock", "Geodude", "Bulbasaur", "Chikorita"));
-        lista.insertar(crear("Gary", "Charmander", "Vulpix", "Mareep"));
-        lista.insertar(crear("May", "Bulbasaur", "Chikorita", "Psyduck"));
-        lista.insertar(crear("Dawn", "Squirtle", "Psyduck", "Pikachu"));
-        lista.insertar(crear("Paul", "Gastly", "Geodude", "Mareep"));
-        lista.insertar(crear("Iris", "Vulpix", "Gastly", "Chikorita"));
-        lista.insertar(crear("Cynthia", "Gastly", "Mareep", "Geodude"));
-        lista.insertar(crear("Red", "Pikachu", "Charmander", "Bulbasaur"));
+        lista.insertar(crear("Leo", "Pikachu", "Charmander", "Squirtle", "Bulbasaur"));
+        lista.insertar(crear("Damian", "Psyduck", "Squirtle", "Bulbasaur", "Vulpix"));
+        lista.insertar(crear("Diego", "Geodude", "Bulbasaur", "Chikorita", "Mareep"));
+        lista.insertar(crear("Jose", "Charmander", "Vulpix", "Mareep", "Gastly"));
+        lista.insertar(crear("Juan", "Bulbasaur", "Chikorita", "Psyduck", "Pikachu"));
+        lista.insertar(crear("Carlos", "Squirtle", "Psyduck", "Pikachu", "Chikorita"));
+        lista.insertar(crear("Erick", "Gastly", "Geodude", "Mareep", "Charmander"));
+        lista.insertar(crear("Abraham", "Vulpix", "Gastly", "Chikorita", "Squirtle"));
+        lista.insertar(crear("Edgar", "Gastly", "Mareep", "Geodude", "Bulbasaur"));
+        lista.insertar(crear("Romero", "Pikachu", "Charmander", "Bulbasaur", "Geodude"));
+
 
         return lista;
     }

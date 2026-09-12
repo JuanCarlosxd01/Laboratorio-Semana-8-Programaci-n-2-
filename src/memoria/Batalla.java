@@ -34,6 +34,7 @@ public final class Batalla {
     private Entrenador rival;
     private ListaEnlazada<Evento> historial;
     private Resultado resultado;
+    private boolean turnoRivalPendiente;
 
     private int ronda;
     private int danoJugador;
@@ -69,6 +70,7 @@ public final class Batalla {
 
         historial = new ListaEnlazada<>();
         resultado = Resultado.EN_CURSO;
+        turnoRivalPendiente = false;
 
         ronda = 0;
         danoJugador = 0;
@@ -92,6 +94,10 @@ public final class Batalla {
 
     public synchronized Resultado getResultado() {
         return resultado;
+    }
+
+    public synchronized boolean isTurnoRivalPendiente() {
+        return turnoRivalPendiente;
     }
 
     public synchronized ListaEnlazada<Evento> getHistorial() {
@@ -164,6 +170,9 @@ public final class Batalla {
         if (resultado != Resultado.EN_CURSO) {
             throw new IllegalStateException("La batalla terminó");
         }
+        if (turnoRivalPendiente) {
+            throw new IllegalStateException("Espera el turno del rival");
+        }
     }
 
     private void ejecutar(Runnable accion) {
@@ -175,13 +184,19 @@ public final class Batalla {
         terminarTurno(jugador, participante);
         resolver();
 
-        if (resultado == Resultado.EN_CURSO) {
-            Pokemon oponente = rival.activoInterno();
+        turnoRivalPendiente = resultado == Resultado.EN_CURSO;
+    }
 
-            turnoRival();
-            terminarTurno(rival, oponente);
-            resolver();
+    public synchronized void ejecutarTurnoRival() {
+        if (!turnoRivalPendiente || resultado != Resultado.EN_CURSO) {
+            return;
         }
+
+        turnoRivalPendiente = false;
+        Pokemon oponente = rival.activoInterno();
+        turnoRival();
+        terminarTurno(rival, oponente);
+        resolver();
     }
 
     private void atacarInterno(

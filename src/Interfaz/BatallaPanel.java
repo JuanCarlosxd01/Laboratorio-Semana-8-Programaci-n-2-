@@ -37,6 +37,10 @@ public class BatallaPanel extends JPanel {
     private JProgressBar barraRival;
 
     private Batalla batalla;
+    private static final int DELAY_TURNO_MS = 4000;
+    private Timer temporizadorTurno;
+    private JPanel panelOpciones;
+    private boolean mostrandoTurno;
 
     public BatallaPanel(VentanaPokemon ventana) {
         this.ventana = ventana;
@@ -45,6 +49,8 @@ public class BatallaPanel extends JPanel {
     }
 
     public void prepararBatalla() {
+        cancelarTemporizador();
+        habilitarAcciones(true);
         batalla = Sesion.getInstancia().getBatallaActual();
 
         if (batalla == null) {
@@ -212,7 +218,7 @@ public class BatallaPanel extends JPanel {
 
         panelMensaje.add(lblMensaje, BorderLayout.CENTER);
 
-        JPanel panelOpciones = new JPanel(null);
+        panelOpciones = new JPanel(null);
         panelOpciones.setBounds(620, 10, 450, 145);
         panelOpciones.setBackground(new Color(248, 246, 232));
 
@@ -274,6 +280,7 @@ public class BatallaPanel extends JPanel {
             lblVidaJugador.setText(pokemonJugador.getHp() + " / " + pokemonJugador.getHpMaximo());
             actualizarBarra(barraJugador, pokemonJugador);
             ponerSprite(lblPokemonJugador, pokemonJugador.getNombre(), true);
+            lblMensaje.setFont(fuente(21f));
             lblMensaje.setText("<html>¿QUÉ HARÁ<br>" + pokemonJugador.getNombre().toUpperCase() + "?</html>");
         }
 
@@ -338,9 +345,10 @@ public class BatallaPanel extends JPanel {
 
             boton.addActionListener(e -> {
                 try {
+                    int inicio = batalla.getHistorial().contar();
                     batalla.atacar(indice);
                     dialogo.dispose();
-                    despuesDeAccion();
+                    despuesDeAccion(inicio);
                 } catch (Exception ex) {
                     JOptionPane.showMessageDialog(dialogo, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                 }
@@ -397,9 +405,10 @@ public class BatallaPanel extends JPanel {
             }
 
             try {
+                int inicio = batalla.getHistorial().contar();
                 batalla.cambiarPokemon(seleccionado);
                 dialogo.dispose();
-                despuesDeAccion();
+                despuesDeAccion(inicio);
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(dialogo, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
@@ -539,9 +548,10 @@ public class BatallaPanel extends JPanel {
             }
 
             try {
+                int inicio = batalla.getHistorial().contar();
                 batalla.usarObjeto(objeto, indicePokemon);
                 dialogo.dispose();
-                despuesDeAccion();
+                despuesDeAccion(inicio);
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(dialogo, ex.getMessage(), "No se puede utilizar el objeto", JOptionPane.ERROR_MESSAGE);
             }
@@ -698,7 +708,82 @@ public class BatallaPanel extends JPanel {
         dialogo.setVisible(true);
     }
 
-    private void despuesDeAccion() {
+    private void despuesDeAccion(int inicio) {
+        actualizarBatalla();
+        mostrarAccion(inicio, "JUGADOR");
+        habilitarAcciones(false);
+
+        Batalla actual = batalla;
+        programarPaso(() -> {
+            if (batalla != actual) {
+                return;
+            }
+            if (!actual.isTurnoRivalPendiente()) {
+                finalizarPresentacion();
+                return;
+            }
+
+            int inicioRival = actual.getHistorial().contar();
+            actual.ejecutarTurnoRival();
+            actualizarBatalla();
+            mostrarAccion(inicioRival, "CPU");
+            programarPaso(this::finalizarPresentacion);
+        });
+    }
+
+    private void programarPaso(Runnable paso) {
+        cancelarTemporizador();
+        temporizadorTurno = new Timer(DELAY_TURNO_MS, evento -> {
+            if (evento.getSource() != temporizadorTurno) {
+                return;
+            }
+            temporizadorTurno = null;
+            paso.run();
+        });
+        temporizadorTurno.setRepeats(false);
+        temporizadorTurno.start();
+    }
+
+    private void cancelarTemporizador() {
+        if (temporizadorTurno != null) {
+            temporizadorTurno.stop();
+            temporizadorTurno = null;
+        }
+    }
+
+    private void habilitarAcciones(boolean habilitar) {
+        mostrandoTurno = !habilitar;
+        for (Component componente : panelOpciones.getComponents()) {
+            componente.setEnabled(habilitar);
+        }
+    }
+
+    private void mostrarAccion(int inicio, String lado) {
+        ListaEnlazada<Batalla.Evento> eventos = batalla.getHistorial();
+        if (inicio >= eventos.contar()) {
+            return;
+        }
+
+        String mensaje = eventos.obtener(inicio).mensaje();
+        for (int i = inicio + 1; i < eventos.contar(); i++) {
+            String detalle = eventos.obtener(i).mensaje();
+            if (detalle.contains(" recibe ")) {
+                mensaje += " " + detalle;
+                break;
+            }
+        }
+
+        mensaje = mensaje.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
+        lblMensaje.setFont(fuente(14f));
+        lblMensaje.setText("<html>" + lado + "<br>" + mensaje + "</html>");
+    }
+
+    private void finalizarPresentacion() {
+        habilitarAcciones(batalla.getResultado() == Batalla.Resultado.EN_CURSO);
+        mostrarResultadoSiTermino();
+    }
+
+    private void mostrarResultadoSiTermino() {
         actualizarBatalla();
 
         if (batalla.getResultado() == Batalla.Resultado.EN_CURSO) {
@@ -722,6 +807,7 @@ public class BatallaPanel extends JPanel {
 
         if (opcion == 0) {
             batalla.reiniciar();
+            habilitarAcciones(true);
             actualizarBatalla();
         } else if (opcion == 1) {
             Sesion.getInstancia().limpiarBatalla();
@@ -730,6 +816,9 @@ public class BatallaPanel extends JPanel {
     }
 
     private boolean batallaDisponible() {
+        if (mostrandoTurno) {
+            return false;
+        }
         if (batalla == null) {
             JOptionPane.showMessageDialog(this, "No hay una batalla activa.");
             return false;

@@ -74,6 +74,7 @@ public class SeleccionEquipoPanel extends JPanel {
         tarjetas[9] = new TarjetaPokemon(179, "Mareep", "Eléctrico");
 
         for (TarjetaPokemon tarjeta : tarjetas) {
+            tarjeta.setAccionSeleccion(() -> actualizarCantidad());
             catalogo.add(tarjeta);
         }
 
@@ -115,20 +116,22 @@ public class SeleccionEquipoPanel extends JPanel {
             }
         }
 
-        lblCantidad.setText("Pokémon seleccionados: " + cantidad);
-    }
+        lblCantidad.setText("Pokémon seleccionados: " + cantidad + " / 4");
+
+        if (cantidad == 4) {
+            lblCantidad.setForeground(new Color(30, 140, 70));
+        } else if (cantidad > 4) {
+            lblCantidad.setForeground(Color.RED);
+        } else {
+            lblCantidad.setForeground(Color.BLACK);
+        }
+}
 
     private void iniciarBatalla() {
         int cantidad = contarSeleccionados();
 
-        if (cantidad == 0) {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Selecciona al menos un Pokémon.",
-                    "Equipo vacío",
-                    JOptionPane.WARNING_MESSAGE
-            );
-
+        if (cantidad != 4) {
+            JOptionPane.showMessageDialog(this, "Debes seleccionar exactamente 4 Pokémon para iniciar la batalla.", "Equipo incompleto", JOptionPane.WARNING_MESSAGE);
             return;
         }
 

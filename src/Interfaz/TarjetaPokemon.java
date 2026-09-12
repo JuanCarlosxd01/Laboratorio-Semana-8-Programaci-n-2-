@@ -12,6 +12,7 @@ public class TarjetaPokemon extends JPanel {
     private String nombre;
     private String tipo;
     private boolean seleccionado;
+    private Runnable accionSeleccion;
 
     private JLabel lblImagen;
     private JLabel lblNombre;
@@ -22,6 +23,7 @@ public class TarjetaPokemon extends JPanel {
         this.id = id;
         this.nombre = nombre;
         this.tipo = tipo;
+        this.seleccionado = false;
 
         configurarPanel();
         crearContenido();
@@ -70,8 +72,7 @@ public class TarjetaPokemon extends JPanel {
     }
 
     private void cargarImagen() {
-        String ruta = "/imagenes/" + id + ".png";
-
+        String ruta = "/Imagenes/" + id + ".png";
         URL recurso = TarjetaPokemon.class.getResource(ruta);
 
         System.out.println("Buscando imagen: " + ruta);
@@ -94,6 +95,14 @@ public class TarjetaPokemon extends JPanel {
     private void cambiarSeleccion() {
         seleccionado = !seleccionado;
 
+        actualizarApariencia();
+
+        if (accionSeleccion != null) {
+            accionSeleccion.run();
+        }
+    }
+
+    private void actualizarApariencia() {
         if (seleccionado) {
             setBackground(new Color(255, 244, 190));
             setBorder(new LineBorder(new Color(230, 170, 30), 5));
@@ -104,19 +113,14 @@ public class TarjetaPokemon extends JPanel {
             btnAgregar.setText("AGREGAR");
         }
     }
-    
+
     public void setSeleccionado(boolean seleccionado) {
         this.seleccionado = seleccionado;
+        actualizarApariencia();
+    }
 
-        if (seleccionado) {
-            setBackground(new Color(255, 244, 190));
-            setBorder(new LineBorder(new Color(230, 170, 30), 5));
-            btnAgregar.setText("QUITAR");
-        } else {
-            setBackground(Color.WHITE);
-            setBorder(new LineBorder(new Color(50, 90, 70), 3));
-            btnAgregar.setText("AGREGAR");
-        }
+    public void setAccionSeleccion(Runnable accionSeleccion) {
+        this.accionSeleccion = accionSeleccion;
     }
 
     public boolean isSeleccionado() {

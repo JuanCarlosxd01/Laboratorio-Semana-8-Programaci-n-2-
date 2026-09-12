@@ -40,10 +40,11 @@ public class LoginPanel extends FondoPokemonPanel {
         titulo.setForeground(new Color(43, 91, 77));
         titulo.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JLabel pokeball = new JLabel("◉");
+        JLabel pokeball = new JLabel("\u25C9");
 
-        pokeball.setFont(new Font("Arial", Font.BOLD, 65));
-        pokeball.setForeground(new Color(215, 62, 55));
+        pokeball.setFont(new Font("Segoe UI Symbol", Font.BOLD, 50));
+        pokeball.setForeground(new Color(213, 59, 55));
+        pokeball.setHorizontalAlignment(SwingConstants.CENTER);
         pokeball.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         txtUsuario = crearCampo();

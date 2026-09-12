@@ -1,10 +1,10 @@
 
-package memoria;
+package Preparacion;
 
 public class NodoUser {
     private User dato;
     private NodoUser siguiente;
-    public NodoUser(){
+    public NodoUser(User dato){
         this.dato=dato;
         this.siguiente=null;
     }

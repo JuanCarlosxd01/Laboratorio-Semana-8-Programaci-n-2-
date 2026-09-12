@@ -1,12 +1,18 @@
 
-package memoria;
+package Preparacion;
+
+import memoria.Entrenador;
 
 public class User {
     String nombreUsr;
     String contra;
+    private final Entrenador entrenador;
+
     public User(String nombreUsr, String contra){
         this.nombreUsr = nombreUsr;
         this.contra=contra;
+        this.entrenador = new Entrenador(nombreUsr); 
+
     }
 
     public String getNombreUsr() {
@@ -30,6 +36,9 @@ public class User {
             return true;
         }
         return false;
+    }
+     public Entrenador getEntrenador() {   
+        return entrenador;
     }
     @Override
     public String toString(){

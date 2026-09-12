@@ -194,4 +194,8 @@ public final class Entrenador {
 
         return copia;
     }
+    
+    public boolean contieneEnEquipo(String nombre) {
+    return buscar(nombre) != null;
+}
 }

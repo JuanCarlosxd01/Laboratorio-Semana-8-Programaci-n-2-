@@ -8,92 +8,100 @@ import javax.swing.border.LineBorder;
 
 public class TarjetaPokemon extends JPanel {
 
+    private int id;
     private String nombre;
     private String tipo;
-    private int id;
+    private boolean seleccionado;
 
     private JLabel lblImagen;
     private JLabel lblNombre;
     private JLabel lblTipo;
-
-    private boolean seleccionado;
+    private JButton btnAgregar;
 
     public TarjetaPokemon(int id, String nombre, String tipo) {
         this.id = id;
         this.nombre = nombre;
         this.tipo = tipo;
 
-        configurar();
+        configurarPanel();
         crearContenido();
     }
 
-    private void configurar() {
+    private void configurarPanel() {
         setLayout(new BorderLayout());
-        setPreferredSize(new Dimension(175, 190));
-        setBackground(new Color(250, 252, 247));
-        setBorder(new LineBorder(new Color(71, 96, 82), 3));
-        setCursor(new Cursor(Cursor.HAND_CURSOR));
-
-        addMouseListener(new java.awt.event.MouseAdapter() {
-            @Override
-            public void mouseClicked(java.awt.event.MouseEvent e) {
-                cambiarSeleccion();
-            }
-        });
+        setPreferredSize(new Dimension(170, 210));
+        setBackground(Color.WHITE);
+        setBorder(new LineBorder(new Color(50, 90, 70), 3));
     }
 
     private void crearContenido() {
         lblImagen = new JLabel();
         lblImagen.setHorizontalAlignment(SwingConstants.CENTER);
+        lblImagen.setVerticalAlignment(SwingConstants.CENTER);
 
         cargarImagen();
 
-        JPanel informacion = new JPanel();
-        informacion.setOpaque(false);
-        informacion.setLayout(new BoxLayout(informacion, BoxLayout.Y_AXIS));
+        lblNombre = new JLabel(nombre.toUpperCase(), SwingConstants.CENTER);
+        lblNombre.setFont(new Font("Arial", Font.BOLD, 15));
 
-        lblNombre = new JLabel(nombre.toUpperCase());
-        lblNombre.setFont(new Font("Arial", Font.BOLD, 14));
-        lblNombre.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        lblTipo = new JLabel(tipo);
+        lblTipo = new JLabel(tipo, SwingConstants.CENTER);
         lblTipo.setFont(new Font("Arial", Font.PLAIN, 13));
-        lblTipo.setForeground(new Color(65, 85, 75));
-        lblTipo.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        informacion.add(lblNombre);
-        informacion.add(lblTipo);
-        informacion.add(Box.createVerticalStrut(7));
+        btnAgregar = new JButton("AGREGAR");
+        btnAgregar.setFocusPainted(false);
+        btnAgregar.addActionListener(e -> cambiarSeleccion());
+
+        JPanel info = new JPanel();
+        info.setOpaque(false);
+        info.setLayout(new BoxLayout(info, BoxLayout.Y_AXIS));
+
+        lblNombre.setAlignmentX(Component.CENTER_ALIGNMENT);
+        lblTipo.setAlignmentX(Component.CENTER_ALIGNMENT);
+        btnAgregar.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        info.add(lblNombre);
+        info.add(lblTipo);
+        info.add(Box.createVerticalStrut(5));
+        info.add(btnAgregar);
+        info.add(Box.createVerticalStrut(5));
 
         add(lblImagen, BorderLayout.CENTER);
-        add(informacion, BorderLayout.SOUTH);
+        add(info, BorderLayout.SOUTH);
     }
 
     private void cargarImagen() {
-        String ruta = "/imagenes/pokemon/" + id + ".png";
-        URL recurso = getClass().getResource(ruta);
+        String ruta = "/imagenes/" + id + ".png";
+
+        URL recurso = TarjetaPokemon.class.getResource(ruta);
+
+        System.out.println("Buscando imagen: " + ruta);
+        System.out.println("Resultado: " + recurso);
 
         if (recurso == null) {
-            lblImagen.setText("Sin imagen");
+            lblImagen.setText("No encontrada");
+            lblImagen.setForeground(Color.RED);
             return;
         }
 
-        ImageIcon original = new ImageIcon(recurso);
+        ImageIcon iconoOriginal = new ImageIcon(recurso);
+        Image imagenEscalada = iconoOriginal.getImage().getScaledInstance(120, 120, Image.SCALE_FAST);
+        ImageIcon iconoEscalado = new ImageIcon(imagenEscalada);
 
-        Image imagen = original.getImage().getScaledInstance(110, 110, Image.SCALE_FAST);
-
-        lblImagen.setIcon(new ImageIcon(imagen));
+        lblImagen.setText("");
+        lblImagen.setIcon(iconoEscalado);
     }
 
     private void cambiarSeleccion() {
         seleccionado = !seleccionado;
 
         if (seleccionado) {
-            setBorder(new LineBorder(new Color(232, 178, 37), 5));
-            setBackground(new Color(255, 247, 209));
+            setBackground(new Color(255, 244, 190));
+            setBorder(new LineBorder(new Color(230, 170, 30), 5));
+            btnAgregar.setText("QUITAR");
         } else {
-            setBorder(new LineBorder(new Color(71, 96, 82), 3));
-            setBackground(new Color(250, 252, 247));
+            setBackground(Color.WHITE);
+            setBorder(new LineBorder(new Color(50, 90, 70), 3));
+            btnAgregar.setText("AGREGAR");
         }
     }
 

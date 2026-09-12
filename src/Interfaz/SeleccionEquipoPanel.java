@@ -10,7 +10,6 @@ public class SeleccionEquipoPanel extends JPanel {
     private VentanaPokemon ventana;
 
     private TarjetaPokemon[] tarjetas;
-
     private JLabel lblCantidad;
 
     public SeleccionEquipoPanel(VentanaPokemon ventana) {
@@ -25,16 +24,16 @@ public class SeleccionEquipoPanel extends JPanel {
 
     private void crearEncabezado() {
         JPanel encabezado = new JPanel(new BorderLayout());
-        encabezado.setBackground(new Color(43, 102, 77));
-        encabezado.setBorder(new EmptyBorder(18, 30, 18, 30));
+        encabezado.setBackground(new Color(39, 103, 76));
+        encabezado.setBorder(new EmptyBorder(15, 25, 15, 25));
 
         JLabel titulo = new JLabel("SELECCIONA TU EQUIPO");
         titulo.setFont(new Font("Arial", Font.BOLD, 28));
         titulo.setForeground(Color.WHITE);
 
-        JLabel subtitulo = new JLabel("Selecciona los Pokémon que deseas llevar al combate");
-        subtitulo.setFont(new Font("Arial", Font.PLAIN, 15));
-        subtitulo.setForeground(new Color(220, 240, 228));
+        JLabel subtitulo = new JLabel("Elige los Pokémon que llevarás a la batalla");
+        subtitulo.setFont(new Font("Arial", Font.PLAIN, 14));
+        subtitulo.setForeground(Color.WHITE);
 
         JPanel textos = new JPanel();
         textos.setOpaque(false);
@@ -52,22 +51,22 @@ public class SeleccionEquipoPanel extends JPanel {
         JPanel fondo = new FondoPokemonPanel();
         fondo.setLayout(new GridBagLayout());
 
-        JPanel catalogo = new JPanel(new GridLayout(2, 5, 16, 16));
+        JPanel catalogo = new JPanel(new GridLayout(2, 5, 15, 15));
         catalogo.setOpaque(false);
-        catalogo.setBorder(new EmptyBorder(25, 25, 25, 25));
+        catalogo.setBorder(new EmptyBorder(20, 20, 20, 20));
 
         tarjetas = new TarjetaPokemon[10];
 
-        tarjetas[0] = new TarjetaPokemon(25, "Pikachu", "Eléctrico");
+        tarjetas[0] = new TarjetaPokemon(1, "Bulbasaur", "Planta");
         tarjetas[1] = new TarjetaPokemon(4, "Charmander", "Fuego");
         tarjetas[2] = new TarjetaPokemon(7, "Squirtle", "Agua");
-        tarjetas[3] = new TarjetaPokemon(1, "Bulbasaur", "Planta");
+        tarjetas[3] = new TarjetaPokemon(25, "Pikachu", "Eléctrico");
         tarjetas[4] = new TarjetaPokemon(37, "Vulpix", "Fuego");
         tarjetas[5] = new TarjetaPokemon(54, "Psyduck", "Agua");
-        tarjetas[6] = new TarjetaPokemon(152, "Chikorita", "Planta");
-        tarjetas[7] = new TarjetaPokemon(179, "Mareep", "Eléctrico");
-        tarjetas[8] = new TarjetaPokemon(74, "Geodude", "Roca");
-        tarjetas[9] = new TarjetaPokemon(92, "Gastly", "Fantasma");
+        tarjetas[6] = new TarjetaPokemon(74, "Geodude", "Roca");
+        tarjetas[7] = new TarjetaPokemon(92, "Gastly", "Fantasma");
+        tarjetas[8] = new TarjetaPokemon(152, "Chikorita", "Planta");
+        tarjetas[9] = new TarjetaPokemon(179, "Mareep", "Eléctrico");
 
         for (TarjetaPokemon tarjeta : tarjetas) {
             catalogo.add(tarjeta);
@@ -79,29 +78,21 @@ public class SeleccionEquipoPanel extends JPanel {
     }
 
     private void crearPie() {
-        JPanel pie = new JPanel(new BorderLayout(20, 0));
-        pie.setBackground(new Color(245, 248, 243));
-        pie.setBorder(new EmptyBorder(15, 25, 15, 25));
+        JPanel pie = new JPanel(new BorderLayout());
+        pie.setBorder(new EmptyBorder(12, 20, 12, 20));
 
         lblCantidad = new JLabel("Pokémon seleccionados: 0");
         lblCantidad.setFont(new Font("Arial", Font.BOLD, 15));
 
-        JPanel botones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
-        botones.setOpaque(false);
+        JButton btnActualizar = new JButton("ACTUALIZAR");
+        JButton btnBatalla = new JButton("INICIAR BATALLA");
 
-        JButton btnBuscar = crearBoton("BUSCAR");
-        JButton btnAgregar = crearBoton("AGREGAR");
-        JButton btnEliminar = crearBoton("ELIMINAR");
-        JButton btnBatalla = crearBoton("INICIAR BATALLA");
-
-        btnAgregar.addActionListener(e -> actualizarSeleccion());
-        btnBuscar.addActionListener(e -> buscarPokemon());
-        btnEliminar.addActionListener(e -> eliminarPokemon());
+        btnActualizar.addActionListener(e -> actualizarCantidad());
         btnBatalla.addActionListener(e -> iniciarBatalla());
 
-        botones.add(btnBuscar);
-        botones.add(btnAgregar);
-        botones.add(btnEliminar);
+        JPanel botones = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+
+        botones.add(btnActualizar);
         botones.add(btnBatalla);
 
         pie.add(lblCantidad, BorderLayout.WEST);
@@ -110,24 +101,7 @@ public class SeleccionEquipoPanel extends JPanel {
         add(pie, BorderLayout.SOUTH);
     }
 
-    private JButton crearBoton(String texto) {
-        JButton boton = new JButton(texto);
-        boton.setFont(new Font("Arial", Font.BOLD, 13));
-        boton.setFocusPainted(false);
-        boton.setBackground(new Color(52, 118, 87));
-        boton.setForeground(Color.WHITE);
-        boton.setPreferredSize(new Dimension(145, 40));
-        return boton;
-    }
-
-    private void actualizarSeleccion() {
-        int cantidad = contarSeleccionados();
-        lblCantidad.setText("Pokémon seleccionados: " + cantidad);
-
-        JOptionPane.showMessageDialog(this, cantidad + " Pokémon agregados al equipo.");
-    }
-
-    private int contarSeleccionados() {
+    private void actualizarCantidad() {
         int cantidad = 0;
 
         for (TarjetaPokemon tarjeta : tarjetas) {
@@ -136,33 +110,20 @@ public class SeleccionEquipoPanel extends JPanel {
             }
         }
 
-        return cantidad;
-    }
-
-    private void buscarPokemon() {
-        String nombre = JOptionPane.showInputDialog(this, "Nombre del Pokémon:");
-
-        if (nombre == null || nombre.trim().isEmpty()) {
-            return;
-        }
-
-        for (TarjetaPokemon tarjeta : tarjetas) {
-            if (tarjeta.getNombrePokemon().equalsIgnoreCase(nombre.trim())) {
-                JOptionPane.showMessageDialog(this, "Pokémon encontrado: " + tarjeta.getNombrePokemon());
-                return;
-            }
-        }
-
-        JOptionPane.showMessageDialog(this, "Pokémon no encontrado.");
-    }
-
-    private void eliminarPokemon() {
-        JOptionPane.showMessageDialog(this, "Esta opción se conectará con ListaEnlazada.eliminar().");
+        lblCantidad.setText("Pokémon seleccionados: " + cantidad);
     }
 
     private void iniciarBatalla() {
-        if (contarSeleccionados() == 0) {
-            JOptionPane.showMessageDialog(this, "Debe seleccionar al menos un Pokémon.");
+        int cantidad = 0;
+
+        for (TarjetaPokemon tarjeta : tarjetas) {
+            if (tarjeta.isSeleccionado()) {
+                cantidad++;
+            }
+        }
+
+        if (cantidad == 0) {
+            JOptionPane.showMessageDialog(this, "Selecciona al menos un Pokémon.");
             return;
         }
 

@@ -1,13 +1,14 @@
 
 package interfaz;
 
-import java.awt.*;
-import javax.swing.*;
+import java.awt.CardLayout;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
 
 public class VentanaPokemon extends JFrame {
 
     private CardLayout cardLayout;
-    private JPanel contenedor;
+    private JPanel panelPrincipal;
 
     private LoginPanel loginPanel;
     private CrearUsuarioPanel crearUsuarioPanel;
@@ -16,49 +17,66 @@ public class VentanaPokemon extends JFrame {
 
     public VentanaPokemon() {
         configurarVentana();
-        crearContenido();
+        crearPaneles();
+        mostrarLogin();
     }
 
     private void configurarVentana() {
         setTitle("Pokémon Battle");
-        setSize(1100, 720);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(1200, 750);
         setLocationRelativeTo(null);
         setResizable(false);
     }
 
-    private void crearContenido() {
+    private void crearPaneles() {
         cardLayout = new CardLayout();
-        contenedor = new JPanel(cardLayout);
+        panelPrincipal = new JPanel(cardLayout);
 
         loginPanel = new LoginPanel(this);
         crearUsuarioPanel = new CrearUsuarioPanel(this);
         seleccionEquipoPanel = new SeleccionEquipoPanel(this);
         batallaPanel = new BatallaPanel(this);
 
-        contenedor.add(loginPanel, "LOGIN");
-        contenedor.add(crearUsuarioPanel, "CREAR_USUARIO");
-        contenedor.add(seleccionEquipoPanel, "SELECCION");
-        contenedor.add(batallaPanel, "BATALLA");
+        panelPrincipal.add(loginPanel, "LOGIN");
+        panelPrincipal.add(crearUsuarioPanel, "CREAR_USUARIO");
+        panelPrincipal.add(seleccionEquipoPanel, "SELECCION");
+        panelPrincipal.add(batallaPanel, "BATALLA");
 
-        add(contenedor);
-
-        mostrarLogin();
+        setContentPane(panelPrincipal);
     }
 
     public void mostrarLogin() {
-        cardLayout.show(contenedor, "LOGIN");
+        cardLayout.show(panelPrincipal, "LOGIN");
     }
 
     public void mostrarCrearUsuario() {
-        cardLayout.show(contenedor, "CREAR_USUARIO");
+        cardLayout.show(panelPrincipal, "CREAR_USUARIO");
     }
 
     public void mostrarSeleccion() {
-        cardLayout.show(contenedor, "SELECCION");
+        seleccionEquipoPanel.reiniciarSeleccion();
+        cardLayout.show(panelPrincipal, "SELECCION");
     }
 
     public void mostrarBatalla() {
-        cardLayout.show(contenedor, "BATALLA");
+        batallaPanel.prepararBatalla();
+        cardLayout.show(panelPrincipal, "BATALLA");
+    }
+
+    public LoginPanel getLoginPanel() {
+        return loginPanel;
+    }
+
+    public CrearUsuarioPanel getCrearUsuarioPanel() {
+        return crearUsuarioPanel;
+    }
+
+    public SeleccionEquipoPanel getSeleccionEquipoPanel() {
+        return seleccionEquipoPanel;
+    }
+
+    public BatallaPanel getBatallaPanel() {
+        return batallaPanel;
     }
 }

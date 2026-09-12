@@ -1,6 +1,8 @@
 
 package interfaz;
 
+import Preparacion.Sesion;
+import Preparacion.User;
 import java.awt.*;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -11,123 +13,164 @@ public class LoginPanel extends FondoPokemonPanel {
 
     private JTextField txtUsuario;
     private JPasswordField txtContrasena;
-    private JButton btnIngresar;
-    private JButton btnCrearUsuario;
 
     public LoginPanel(VentanaPokemon ventana) {
         this.ventana = ventana;
 
         setLayout(new GridBagLayout());
 
-        crearLogin();
+        crearContenido();
     }
 
-    private void crearLogin() {
+    private void crearContenido() {
         JPanel tarjeta = new JPanel();
-        tarjeta.setPreferredSize(new Dimension(430, 500));
+
+        tarjeta.setPreferredSize(new Dimension(450, 430));
         tarjeta.setLayout(new BoxLayout(tarjeta, BoxLayout.Y_AXIS));
-        tarjeta.setBackground(new Color(245, 250, 244));
+        tarjeta.setBackground(new Color(248, 250, 246));
+
         tarjeta.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(34, 75, 62), 5),
-                new EmptyBorder(30, 45, 30, 45)
+                BorderFactory.createLineBorder(new Color(35, 75, 62), 5),
+                new EmptyBorder(35, 45, 35, 45)
         ));
 
-        JLabel titulo = new JLabel("POKÉMON");
-        titulo.setFont(new Font("Arial", Font.BOLD, 48));
-        titulo.setForeground(new Color(245, 190, 30));
+        JLabel titulo = new JLabel("POKÉMON BATTLE");
+
+        titulo.setFont(new Font("Arial", Font.BOLD, 28));
+        titulo.setForeground(new Color(43, 91, 77));
         titulo.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JLabel subtitulo = new JLabel("BATTLE");
-        subtitulo.setFont(new Font("Arial", Font.BOLD, 27));
-        subtitulo.setForeground(new Color(45, 93, 85));
-        subtitulo.setAlignmentX(Component.CENTER_ALIGNMENT);
+        JLabel pokeball = new JLabel("◉");
 
-        JLabel icono = new JLabel("◉");
-        icono.setFont(new Font("Arial", Font.BOLD, 70));
-        icono.setForeground(new Color(213, 59, 55));
-        icono.setAlignmentX(Component.CENTER_ALIGNMENT);
+        pokeball.setFont(new Font("Arial", Font.BOLD, 65));
+        pokeball.setForeground(new Color(215, 62, 55));
+        pokeball.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JLabel lblUsuario = crearEtiqueta("USUARIO");
+        txtUsuario = crearCampo();
+        txtContrasena = crearPassword();
 
-        txtUsuario = new JTextField();
-        configurarCampo(txtUsuario);
+        JButton btnIngresar = crearBoton("INICIAR SESIÓN");
+        JButton btnCrear = crearBoton("CREAR USUARIO");
 
-        JLabel lblContrasena = crearEtiqueta("CONTRASEÑA");
+        btnIngresar.addActionListener(e -> iniciarSesion());
 
-        txtContrasena = new JPasswordField();
-        configurarCampo(txtContrasena);
-
-        btnIngresar = crearBoton("INICIAR SESIÓN");
-        btnCrearUsuario = crearBotonSecundario("CREAR USUARIO");
-
-        btnIngresar.addActionListener(e -> ingresar());
-        btnCrearUsuario.addActionListener(e -> ventana.mostrarCrearUsuario());
+        btnCrear.addActionListener(e -> {
+            limpiarCampos();
+            ventana.mostrarCrearUsuario();
+        });
 
         tarjeta.add(titulo);
-        tarjeta.add(subtitulo);
         tarjeta.add(Box.createVerticalStrut(5));
-        tarjeta.add(icono);
-        tarjeta.add(Box.createVerticalStrut(15));
-        tarjeta.add(lblUsuario);
-        tarjeta.add(Box.createVerticalStrut(5));
-        tarjeta.add(txtUsuario);
-        tarjeta.add(Box.createVerticalStrut(15));
-        tarjeta.add(lblContrasena);
-        tarjeta.add(Box.createVerticalStrut(5));
-        tarjeta.add(txtContrasena);
-        tarjeta.add(Box.createVerticalStrut(25));
+        tarjeta.add(pokeball);
+        tarjeta.add(Box.createVerticalStrut(20));
+
+        agregarCampo(tarjeta, "USUARIO", txtUsuario);
+        agregarCampo(tarjeta, "CONTRASEÑA", txtContrasena);
+
+        tarjeta.add(Box.createVerticalStrut(20));
         tarjeta.add(btnIngresar);
         tarjeta.add(Box.createVerticalStrut(10));
-        tarjeta.add(btnCrearUsuario);
+        tarjeta.add(btnCrear);
 
         add(tarjeta);
     }
 
-    private JLabel crearEtiqueta(String texto) {
-        JLabel label = new JLabel(texto);
-        label.setFont(new Font("Arial", Font.BOLD, 14));
-        label.setForeground(new Color(50, 65, 60));
-        label.setAlignmentX(Component.LEFT_ALIGNMENT);
-        return label;
+    private JTextField crearCampo() {
+        JTextField campo = new JTextField();
+
+        configurarCampo(campo);
+
+        return campo;
+    }
+
+    private JPasswordField crearPassword() {
+        JPasswordField campo = new JPasswordField();
+
+        configurarCampo(campo);
+
+        return campo;
     }
 
     private void configurarCampo(JTextField campo) {
-        campo.setMaximumSize(new Dimension(Integer.MAX_VALUE, 45));
-        campo.setPreferredSize(new Dimension(320, 45));
-        campo.setFont(new Font("Arial", Font.PLAIN, 17));
+        campo.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
+        campo.setFont(new Font("Arial", Font.PLAIN, 16));
+
         campo.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(71, 105, 91), 2),
+                BorderFactory.createLineBorder(new Color(70, 103, 91), 2),
                 BorderFactory.createEmptyBorder(5, 10, 5, 10)
         ));
     }
 
+    private void agregarCampo(JPanel panel, String texto, JTextField campo) {
+        JLabel label = new JLabel(texto);
+
+        label.setFont(new Font("Arial", Font.BOLD, 13));
+        label.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        panel.add(label);
+        panel.add(Box.createVerticalStrut(5));
+        panel.add(campo);
+        panel.add(Box.createVerticalStrut(15));
+    }
+
     private JButton crearBoton(String texto) {
         JButton boton = new JButton(texto);
-        boton.setMaximumSize(new Dimension(Integer.MAX_VALUE, 48));
-        boton.setPreferredSize(new Dimension(320, 48));
+
+        boton.setMaximumSize(new Dimension(Integer.MAX_VALUE, 45));
         boton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        boton.setFont(new Font("Arial", Font.BOLD, 15));
         boton.setFocusPainted(false);
-        boton.setFont(new Font("Arial", Font.BOLD, 16));
-        boton.setBackground(new Color(60, 137, 98));
+        boton.setBackground(new Color(55, 129, 93));
         boton.setForeground(Color.WHITE);
+        boton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
         return boton;
     }
 
-    private JButton crearBotonSecundario(String texto) {
-        JButton boton = crearBoton(texto);
-        boton.setBackground(new Color(70, 91, 103));
-        return boton;
-    }
-
-    private void ingresar() {
-        String usuario = txtUsuario.getText().trim();
+    private void iniciarSesion() {
+        String nombreUsuario = txtUsuario.getText().trim();
         String contrasena = new String(txtContrasena.getPassword());
 
-        if (usuario.isEmpty() || contrasena.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Ingrese usuario y contraseña.");
+        if (nombreUsuario.isEmpty() || contrasena.isEmpty()) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Ingrese su usuario y contraseña.",
+                    "Campos incompletos",
+                    JOptionPane.WARNING_MESSAGE
+            );
+
             return;
         }
 
+        User usuario = Sesion.getInstancia().getUsuarios().autenticar(nombreUsuario, contrasena);
+
+        if (usuario == null) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Usuario o contraseña incorrectos.",
+                    "Inicio de sesión",
+                    JOptionPane.ERROR_MESSAGE
+            );
+
+            return;
+        }
+
+        Sesion.getInstancia().iniciarSesion(usuario);
+
+        JOptionPane.showMessageDialog(
+                this,
+                "Bienvenido, " + usuario.getUsuario() + ".",
+                "Sesión iniciada",
+                JOptionPane.INFORMATION_MESSAGE
+        );
+
+        limpiarCampos();
+
         ventana.mostrarSeleccion();
+    }
+
+    private void limpiarCampos() {
+        txtUsuario.setText("");
+        txtContrasena.setText("");
     }
 }

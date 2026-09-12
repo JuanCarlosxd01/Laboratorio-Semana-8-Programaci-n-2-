@@ -1,9 +1,14 @@
 
 package interfaz;
 
+import Preparacion.EntrenadoresPredeterminados;
+import Preparacion.Sesion;
 import java.awt.*;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import memoria.Catalogo;
+import memoria.Entrenador;
+import memoria.Pokemon;
 
 public class SeleccionEquipoPanel extends JPanel {
 
@@ -114,6 +119,62 @@ public class SeleccionEquipoPanel extends JPanel {
     }
 
     private void iniciarBatalla() {
+        int cantidad = contarSeleccionados();
+
+        if (cantidad == 0) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Selecciona al menos un Pokémon.",
+                    "Equipo vacío",
+                    JOptionPane.WARNING_MESSAGE
+            );
+
+            return;
+        }
+
+        Entrenador entrenador = Sesion.getInstancia().getEntrenadorActual();
+
+        if (entrenador == null) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "No hay un entrenador con sesión iniciada.",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE
+            );
+
+            ventana.mostrarLogin();
+            return;
+        }
+
+        vaciarEquipo(entrenador);
+
+        try {
+            agregarPokemonSeleccionados(entrenador);
+
+            Entrenador rival = EntrenadoresPredeterminados.aleatorio();
+
+            Sesion.getInstancia().prepararBatalla(rival);
+
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Tu rival será " + rival.getNombre() + ".",
+                    "Batalla preparada",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+
+            ventana.mostrarBatalla();
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "No se pudo preparar la batalla: " + e.getMessage(),
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE
+            );
+        }
+    }
+
+    private int contarSeleccionados() {
         int cantidad = 0;
 
         for (TarjetaPokemon tarjeta : tarjetas) {
@@ -122,11 +183,29 @@ public class SeleccionEquipoPanel extends JPanel {
             }
         }
 
-        if (cantidad == 0) {
-            JOptionPane.showMessageDialog(this, "Selecciona al menos un Pokémon.");
-            return;
+        return cantidad;
+    }
+
+    private void vaciarEquipo(Entrenador entrenador) {
+        while (entrenador.contar() > 0) {
+            entrenador.eliminar(0);
+        }
+    }
+
+    private void agregarPokemonSeleccionados(Entrenador entrenador) {
+        for (TarjetaPokemon tarjeta : tarjetas) {
+            if (tarjeta.isSeleccionado()) {
+                Pokemon pokemon = Catalogo.buscar(tarjeta.getNombrePokemon());
+                entrenador.agregar(pokemon);
+            }
+        }
+    }
+
+    public void reiniciarSeleccion() {
+        for (TarjetaPokemon tarjeta : tarjetas) {
+            tarjeta.setSeleccionado(false);
         }
 
-        ventana.mostrarBatalla();
+        actualizarCantidad();
     }
 }

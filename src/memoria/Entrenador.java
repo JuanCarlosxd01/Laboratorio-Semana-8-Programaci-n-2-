@@ -9,6 +9,7 @@ package memoria;
  * @author diego
  */
 public final class Entrenador {
+
     public record Existencia(Objeto objeto, int cantidad) {}
 
     private final String nombre;
@@ -27,6 +28,7 @@ public final class Entrenador {
 
         inventario.insertar(new Existencia(Objeto.POCION, 2));
         inventario.insertar(new Existencia(Objeto.SUPERPOCION, 2));
+        inventario.insertar(new Existencia(Objeto.REVIVIR, 1));
         inventario.insertar(new Existencia(Objeto.ANTIDOTO, 2));
         inventario.insertar(new Existencia(Objeto.ANTIPARALIZADOR, 2));
     }
@@ -48,7 +50,11 @@ public final class Entrenador {
     }
 
     public Pokemon getActivo() {
-        return activo < 0 ? null : getPokemon(activo);
+        if (activo < 0 || activo >= equipo.contar()) {
+            return null;
+        }
+
+        return getPokemon(activo);
     }
 
     public void agregar(Pokemon pokemon) {
@@ -64,20 +70,60 @@ public final class Entrenador {
     }
 
     public Pokemon buscar(String nombre) {
-        Pokemon encontrado = equipo.buscar(
-                p -> p.getNombre().equalsIgnoreCase(nombre)
-        );
+        if (nombre == null || nombre.isBlank()) {
+            return null;
+        }
 
-        return encontrado == null ? null : encontrado.copiar();
+        Pokemon encontrado = equipo.buscar(pokemon -> pokemon.getNombre().equalsIgnoreCase(nombre));
+
+        if (encontrado == null) {
+            return null;
+        }
+
+        return encontrado.copiar();
+    }
+
+    public int buscarIndice(String nombre) {
+        if (nombre == null || nombre.isBlank()) {
+            return -1;
+        }
+
+        for (int i = 0; i < equipo.contar(); i++) {
+            if (equipo.obtener(i).getNombre().equalsIgnoreCase(nombre)) {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    public boolean contieneEnEquipo(String nombre) {
+        return buscarIndice(nombre) != -1;
     }
 
     public void eliminar(int indice) {
+        if (indice < 0 || indice >= equipo.contar()) {
+            throw new IllegalArgumentException("Índice inválido");
+        }
+
         equipo.eliminar(indice);
 
-        if (indice == activo) {
-            activo = siguienteDisponible();
-        } else if (indice < activo) {
+        if (equipo.contar() == 0) {
+            activo = -1;
+            return;
+        }
+
+        if (indice < activo) {
             activo--;
+        } else if (indice == activo) {
+            activo = -1;
+
+            for (int i = 0; i < equipo.contar(); i++) {
+                if (!interno(i).estaDerrotado()) {
+                    activo = i;
+                    break;
+                }
+            }
         }
     }
 
@@ -86,10 +132,14 @@ public final class Entrenador {
             throw new IllegalArgumentException("Pokémon nulo");
         }
 
+        if (indice < 0 || indice >= equipo.contar()) {
+            throw new IllegalArgumentException("Índice inválido");
+        }
+
         equipo.modificar(indice, pokemon.copiar());
 
-        if (activo < 0 || interno(activo).estaDerrotado()) {
-            activo = siguienteDisponible();
+        if (activo < 0 || activo >= equipo.contar() || interno(activo).estaDerrotado()) {
+            activo = primerDisponible();
         }
     }
 
@@ -105,7 +155,25 @@ public final class Entrenador {
         return total;
     }
 
+    public int primerDisponible() {
+        for (int i = 0; i < equipo.contar(); i++) {
+            if (!interno(i).estaDerrotado()) {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
     public int siguienteDisponible() {
+        if (equipo.contar() == 0) {
+            return -1;
+        }
+
+        if (activo < 0) {
+            return primerDisponible();
+        }
+
         for (int i = 1; i <= equipo.contar(); i++) {
             int indice = (activo + i) % equipo.contar();
 
@@ -138,11 +206,21 @@ public final class Entrenador {
     }
 
     public int cantidad(Objeto objeto) {
-        Existencia existencia = inventario.buscar(
-                e -> e.objeto() == objeto
-        );
+        if (objeto == null) {
+            return 0;
+        }
 
-        return existencia == null ? 0 : existencia.cantidad();
+        Existencia existencia = inventario.buscar(e -> e.objeto() == objeto);
+
+        if (existencia == null) {
+            return 0;
+        }
+
+        return existencia.cantidad();
+    }
+
+    public boolean tieneObjeto(Objeto objeto) {
+        return cantidad(objeto) > 0;
     }
 
     Pokemon interno(int indice) {
@@ -150,10 +228,18 @@ public final class Entrenador {
     }
 
     Pokemon activoInterno() {
+        if (activo < 0 || activo >= equipo.contar()) {
+            throw new IllegalStateException("No hay Pokémon activo");
+        }
+
         return interno(activo);
     }
 
     void cambiar(int indice) {
+        if (indice < 0 || indice >= equipo.contar()) {
+            throw new IllegalArgumentException("Índice inválido");
+        }
+
         if (interno(indice).estaDerrotado()) {
             throw new IllegalArgumentException("Pokémon derrotado");
         }
@@ -162,26 +248,35 @@ public final class Entrenador {
     }
 
     void consumir(Objeto objeto) {
+        if (objeto == null) {
+            throw new IllegalArgumentException("Objeto nulo");
+        }
+
         for (int i = 0; i < inventario.contar(); i++) {
             Existencia existencia = inventario.obtener(i);
 
-            if (existencia.objeto() == objeto && existencia.cantidad() > 0) {
-                inventario.modificar(
-                        i,
-                        new Existencia(objeto, existencia.cantidad() - 1)
-                );
+            if (existencia.objeto() == objeto) {
+                if (existencia.cantidad() <= 0) {
+                    throw new IllegalArgumentException("Objeto agotado");
+                }
+
+                inventario.modificar(i, new Existencia(objeto, existencia.cantidad() - 1));
                 return;
             }
         }
 
-        throw new IllegalArgumentException("Objeto agotado");
+        throw new IllegalArgumentException("Objeto no encontrado");
     }
 
     Entrenador copiar(boolean reiniciar) {
         Entrenador copia = new Entrenador(nombre);
 
         for (Pokemon pokemon : equipo) {
-            copia.agregar(reiniciar ? pokemon.nuevo() : pokemon);
+            if (reiniciar) {
+                copia.agregar(pokemon.nuevo());
+            } else {
+                copia.agregar(pokemon);
+            }
         }
 
         copia.activo = activo;
@@ -194,8 +289,4 @@ public final class Entrenador {
 
         return copia;
     }
-    
-    public boolean contieneEnEquipo(String nombre) {
-    return buscar(nombre) != null;
-}
 }

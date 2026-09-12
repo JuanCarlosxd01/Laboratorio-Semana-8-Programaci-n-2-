@@ -1,72 +1,62 @@
 
 package interfaz;
 
+import Preparacion.Sesion;
 import java.awt.*;
-import java.io.InputStream;
 import java.net.URL;
 import javax.swing.*;
 import javax.swing.border.Border;
+import memoria.Ataque;
+import memoria.Batalla;
+import memoria.Entrenador;
+import memoria.ListaEnlazada;
+import memoria.Objeto;
+import memoria.Pokemon;
 
 public class BatallaPanel extends JPanel {
 
     private VentanaPokemon ventana;
-
     private JPanel campo;
 
     private JLabel lblPokemonJugador;
     private JLabel lblPokemonRival;
-
     private JLabel texto1;
     private JLabel texto2;
 
     private JLabel lblNombreJugador;
     private JLabel lblVidaJugador;
+    private JLabel lblNivelJugador;
 
     private JLabel lblNombreRival;
     private JLabel lblVidaRival;
+    private JLabel lblNivelRival;
+
+    private JLabel lblMensaje;
 
     private JProgressBar barraJugador;
     private JProgressBar barraRival;
 
-    private Font fuentePokemon;
+    private Batalla batalla;
 
     public BatallaPanel(VentanaPokemon ventana) {
         this.ventana = ventana;
-
-        cargarFuente();
-
         setLayout(new BorderLayout());
-
         crearCampoBatalla();
     }
 
-    private void cargarFuente() {
-        try {
-            InputStream archivo = BatallaPanel.class.getResourceAsStream("/Imagenes/pokemon-emerald.otf");
+    public void prepararBatalla() {
+        batalla = Sesion.getInstancia().getBatallaActual();
 
-            if (archivo == null) {
-                System.out.println("No se encontró /Imagenes/pokemon-emerald.otf");
-                fuentePokemon = new Font("Arial", Font.BOLD, 16);
-                return;
-            }
-
-            fuentePokemon = Font.createFont(Font.TRUETYPE_FONT, archivo);
-
-            GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-            ge.registerFont(fuentePokemon);
-
-            archivo.close();
-
-            System.out.println("Fuente Pokémon cargada: " + fuentePokemon.getFontName());
-
-        } catch (Exception e) {
-            System.out.println("Error cargando fuente Pokémon: " + e.getMessage());
-            fuentePokemon = new Font("Arial", Font.BOLD, 16);
+        if (batalla == null) {
+            JOptionPane.showMessageDialog(this, "No existe una batalla preparada.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
         }
+
+        actualizarBatalla();
     }
 
     private Font fuente(float tamaño) {
-        return fuentePokemon.deriveFont(Font.PLAIN, tamaño);
+        return FuentePokemon.obtenerFuente(tamaño);
     }
 
     private void crearCampoBatalla() {
@@ -94,10 +84,14 @@ public class BatallaPanel extends JPanel {
     }
 
     private void crearPokemon() {
-        lblPokemonRival = crearSprite(4, false);
+        lblPokemonRival = new JLabel();
+        lblPokemonRival.setHorizontalAlignment(SwingConstants.CENTER);
+        lblPokemonRival.setVerticalAlignment(SwingConstants.CENTER);
         lblPokemonRival.setBounds(680, 75, 280, 250);
 
-        lblPokemonJugador = crearSprite(25, true);
+        lblPokemonJugador = new JLabel();
+        lblPokemonJugador.setHorizontalAlignment(SwingConstants.CENTER);
+        lblPokemonJugador.setVerticalAlignment(SwingConstants.CENTER);
         lblPokemonJugador.setBounds(75, 285, 330, 280);
 
         campo.add(lblPokemonRival);
@@ -105,15 +99,15 @@ public class BatallaPanel extends JPanel {
     }
 
     private void crearInformacionPokemon() {
-        lblNombreRival = new JLabel("CHARMANDER");
+        lblNombreRival = new JLabel("POKÉMON");
         lblNombreRival.setFont(fuente(18f));
         lblNombreRival.setForeground(new Color(45, 45, 45));
         lblNombreRival.setBounds(80, 60, 200, 25);
 
-        JLabel nivelRival = new JLabel("Lv. 15");
-        nivelRival.setFont(fuente(14f));
-        nivelRival.setForeground(new Color(45, 45, 45));
-        nivelRival.setBounds(315, 60, 70, 25);
+        lblNivelRival = new JLabel("Lv. 0");
+        lblNivelRival.setFont(fuente(14f));
+        lblNivelRival.setForeground(new Color(45, 45, 45));
+        lblNivelRival.setBounds(315, 60, 70, 25);
 
         JLabel hpRival = new JLabel("HP");
         hpRival.setFont(fuente(11f));
@@ -123,20 +117,20 @@ public class BatallaPanel extends JPanel {
         barraRival = crearBarraVida();
         barraRival.setBounds(145, 102, 215, 14);
 
-        lblVidaRival = new JLabel("100 / 100");
+        lblVidaRival = new JLabel("0 / 0");
         lblVidaRival.setFont(fuente(11f));
         lblVidaRival.setForeground(new Color(45, 45, 45));
         lblVidaRival.setBounds(275, 124, 90, 20);
 
-        lblNombreJugador = new JLabel("PIKACHU");
+        lblNombreJugador = new JLabel("POKÉMON");
         lblNombreJugador.setFont(fuente(18f));
         lblNombreJugador.setForeground(new Color(45, 45, 45));
         lblNombreJugador.setBounds(685, 365, 200, 25);
 
-        JLabel nivelJugador = new JLabel("Lv. 15");
-        nivelJugador.setFont(fuente(14f));
-        nivelJugador.setForeground(new Color(45, 45, 45));
-        nivelJugador.setBounds(920, 365, 70, 25);
+        lblNivelJugador = new JLabel("Lv. 0");
+        lblNivelJugador.setFont(fuente(14f));
+        lblNivelJugador.setForeground(new Color(45, 45, 45));
+        lblNivelJugador.setBounds(920, 365, 70, 25);
 
         JLabel hpJugador = new JLabel("HP");
         hpJugador.setFont(fuente(11f));
@@ -146,63 +140,56 @@ public class BatallaPanel extends JPanel {
         barraJugador = crearBarraVida();
         barraJugador.setBounds(750, 407, 215, 14);
 
-        lblVidaJugador = new JLabel("100 / 100");
+        lblVidaJugador = new JLabel("0 / 0");
         lblVidaJugador.setFont(fuente(11f));
         lblVidaJugador.setForeground(new Color(45, 45, 45));
         lblVidaJugador.setBounds(875, 428, 100, 20);
 
         campo.add(lblNombreRival);
-        campo.add(nivelRival);
+        campo.add(lblNivelRival);
         campo.add(hpRival);
         campo.add(barraRival);
         campo.add(lblVidaRival);
 
         campo.add(lblNombreJugador);
-        campo.add(nivelJugador);
+        campo.add(lblNivelJugador);
         campo.add(hpJugador);
         campo.add(barraJugador);
         campo.add(lblVidaJugador);
 
         campo.setComponentZOrder(lblNombreRival, 0);
-        campo.setComponentZOrder(nivelRival, 0);
+        campo.setComponentZOrder(lblNivelRival, 0);
         campo.setComponentZOrder(hpRival, 0);
         campo.setComponentZOrder(barraRival, 0);
         campo.setComponentZOrder(lblVidaRival, 0);
 
         campo.setComponentZOrder(lblNombreJugador, 0);
-        campo.setComponentZOrder(nivelJugador, 0);
+        campo.setComponentZOrder(lblNivelJugador, 0);
         campo.setComponentZOrder(hpJugador, 0);
         campo.setComponentZOrder(barraJugador, 0);
         campo.setComponentZOrder(lblVidaJugador, 0);
     }
 
     private JProgressBar crearBarraVida() {
-        JProgressBar barra = new JProgressBar(0, 100);
-
-        barra.setValue(100);
+        JProgressBar barra = new JProgressBar();
         barra.setBorderPainted(false);
         barra.setStringPainted(false);
-
         barra.setBackground(new Color(65, 75, 70));
         barra.setForeground(new Color(55, 190, 90));
-
         return barra;
     }
 
     private void crearBotonHistorial() {
         JButton btnHistorial = new JButton("HISTORIAL");
-
         btnHistorial.setFont(fuente(13f));
         btnHistorial.setFocusPainted(false);
         btnHistorial.setBackground(new Color(248, 246, 232));
         btnHistorial.setForeground(new Color(45, 45, 45));
         btnHistorial.setBounds(890, 20, 150, 35);
         btnHistorial.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
         btnHistorial.addActionListener(e -> mostrarHistorial());
 
         campo.add(btnHistorial);
-
         campo.setComponentZOrder(btnHistorial, 0);
     }
 
@@ -215,29 +202,21 @@ public class BatallaPanel extends JPanel {
         panelMensaje.setBounds(12, 10, 600, 145);
         panelMensaje.setBackground(new Color(105, 175, 180));
 
-        Border bordeMensaje = BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(195, 70, 65), 8),
-                BorderFactory.createLineBorder(new Color(225, 225, 225), 4)
-        );
-
+        Border bordeMensaje = BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(new Color(195, 70, 65), 8), BorderFactory.createLineBorder(new Color(225, 225, 225), 4));
         panelMensaje.setBorder(bordeMensaje);
 
-        JLabel mensaje = new JLabel("<html>¿QUÉ HARÁ<br>PIKACHU?</html>");
-        mensaje.setFont(fuente(21f));
-        mensaje.setForeground(Color.WHITE);
-        mensaje.setBorder(BorderFactory.createEmptyBorder(15, 25, 10, 10));
+        lblMensaje = new JLabel("<html>SELECCIONA<br>TU ACCIÓN</html>");
+        lblMensaje.setFont(fuente(21f));
+        lblMensaje.setForeground(Color.WHITE);
+        lblMensaje.setBorder(BorderFactory.createEmptyBorder(15, 25, 10, 10));
 
-        panelMensaje.add(mensaje, BorderLayout.CENTER);
+        panelMensaje.add(lblMensaje, BorderLayout.CENTER);
 
         JPanel panelOpciones = new JPanel(null);
         panelOpciones.setBounds(620, 10, 450, 145);
         panelOpciones.setBackground(new Color(248, 246, 232));
 
-        Border bordeOpciones = BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(75, 70, 95), 7),
-                BorderFactory.createLineBorder(new Color(220, 220, 220), 4)
-        );
-
+        Border bordeOpciones = BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(new Color(75, 70, 95), 7), BorderFactory.createLineBorder(new Color(220, 220, 220), 4));
         panelOpciones.setBorder(bordeOpciones);
 
         JButton btnAtaque = crearBotonMenu("ATAQUE");
@@ -247,7 +226,6 @@ public class BatallaPanel extends JPanel {
 
         btnAtaque.setBounds(25, 20, 185, 45);
         btnObjetos.setBounds(235, 20, 185, 45);
-
         btnCambiar.setBounds(25, 80, 185, 45);
         btnEquipo.setBounds(235, 80, 185, 45);
 
@@ -265,75 +243,125 @@ public class BatallaPanel extends JPanel {
         panelInferior.add(panelOpciones);
 
         campo.add(panelInferior);
-
         campo.setComponentZOrder(panelInferior, 0);
     }
 
     private JButton crearBotonMenu(String texto) {
         JButton boton = new JButton(texto);
-
         boton.setFont(fuente(17f));
         boton.setForeground(new Color(45, 45, 45));
         boton.setBackground(new Color(248, 246, 232));
         boton.setFocusPainted(false);
         boton.setBorderPainted(false);
         boton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
         return boton;
     }
 
+    private void actualizarBatalla() {
+        if (batalla == null) {
+            return;
+        }
+
+        Entrenador jugador = batalla.getJugador();
+        Entrenador rival = batalla.getRival();
+
+        Pokemon pokemonJugador = jugador.getActivo();
+        Pokemon pokemonRival = rival.getActivo();
+
+        if (pokemonJugador != null) {
+            lblNombreJugador.setText(pokemonJugador.getNombre().toUpperCase());
+            lblNivelJugador.setText("Lv. " + pokemonJugador.getNivel());
+            lblVidaJugador.setText(pokemonJugador.getHp() + " / " + pokemonJugador.getHpMaximo());
+            actualizarBarra(barraJugador, pokemonJugador);
+            ponerSprite(lblPokemonJugador, pokemonJugador.getNombre(), true);
+            lblMensaje.setText("<html>¿QUÉ HARÁ<br>" + pokemonJugador.getNombre().toUpperCase() + "?</html>");
+        }
+
+        if (pokemonRival != null) {
+            lblNombreRival.setText(pokemonRival.getNombre().toUpperCase());
+            lblNivelRival.setText("Lv. " + pokemonRival.getNivel());
+            lblVidaRival.setText(pokemonRival.getHp() + " / " + pokemonRival.getHpMaximo());
+            actualizarBarra(barraRival, pokemonRival);
+            ponerSprite(lblPokemonRival, pokemonRival.getNombre(), false);
+        }
+
+        repaint();
+        revalidate();
+    }
+
+    private void actualizarBarra(JProgressBar barra, Pokemon pokemon) {
+        barra.setMinimum(0);
+        barra.setMaximum(pokemon.getHpMaximo());
+        barra.setValue(pokemon.getHp());
+
+        double porcentaje = (double) pokemon.getHp() / pokemon.getHpMaximo();
+
+        if (porcentaje <= 0.20) {
+            barra.setForeground(new Color(210, 60, 55));
+        } else if (porcentaje <= 0.50) {
+            barra.setForeground(new Color(225, 180, 45));
+        } else {
+            barra.setForeground(new Color(55, 190, 90));
+        }
+    }
+
     private void mostrarAtaques() {
-        JDialog dialogo = crearDialogo("ATAQUES", 500, 300);
+        if (!batallaDisponible()) {
+            return;
+        }
 
-        JPanel panelPrincipal = new JPanel(new BorderLayout(10, 10));
-        panelPrincipal.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
-        panelPrincipal.setBackground(new Color(248, 246, 232));
+        Pokemon activo = batalla.getJugador().getActivo();
+        JDialog dialogo = crearDialogo("ATAQUES", 520, 300);
 
-        JLabel titulo = new JLabel("SELECCIONA UN ATAQUE", SwingConstants.CENTER);
+        JPanel principal = new JPanel(new BorderLayout(10, 10));
+        principal.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        principal.setBackground(new Color(248, 246, 232));
+
+        JLabel titulo = new JLabel("ATAQUES DE " + activo.getNombre().toUpperCase(), SwingConstants.CENTER);
         titulo.setFont(fuente(18f));
 
-        JPanel panelAtaques = new JPanel(new GridLayout(2, 2, 10, 10));
+        JPanel panelAtaques = new JPanel(new GridLayout(0, 1, 8, 8));
         panelAtaques.setBackground(new Color(248, 246, 232));
 
-        JButton btnImpactrueno = crearBotonDialogo("IMPACTRUENO");
-        JButton btnAtaqueRapido = crearBotonDialogo("ATAQUE RÁPIDO");
-        JButton btnOndaTrueno = crearBotonDialogo("ONDA TRUENO");
-        JButton btnChispa = crearBotonDialogo("CHISPA");
+        for (int i = 0; i < activo.cantidadAtaques(); i++) {
+            Ataque ataque = activo.getAtaque(i);
+            int indice = i;
+            String detalle;
 
-        panelAtaques.add(btnImpactrueno);
-        panelAtaques.add(btnAtaqueRapido);
-        panelAtaques.add(btnOndaTrueno);
-        panelAtaques.add(btnChispa);
+            if (ataque.dano() > 0) {
+                detalle = "   DAÑO: " + ataque.dano();
+            } else {
+                detalle = "   EFECTO: " + ataque.efecto();
+            }
 
-        btnImpactrueno.addActionListener(e -> {
-            JOptionPane.showMessageDialog(dialogo, "PIKACHU utilizó IMPACTRUENO.");
-            dialogo.dispose();
-        });
+            JButton boton = crearBotonDialogo(ataque.nombre().toUpperCase() + detalle);
 
-        btnAtaqueRapido.addActionListener(e -> {
-            JOptionPane.showMessageDialog(dialogo, "PIKACHU utilizó ATAQUE RÁPIDO.");
-            dialogo.dispose();
-        });
+            boton.addActionListener(e -> {
+                try {
+                    batalla.atacar(indice);
+                    dialogo.dispose();
+                    despuesDeAccion();
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(dialogo, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            });
 
-        btnOndaTrueno.addActionListener(e -> {
-            JOptionPane.showMessageDialog(dialogo, "PIKACHU utilizó ONDA TRUENO.");
-            dialogo.dispose();
-        });
+            panelAtaques.add(boton);
+        }
 
-        btnChispa.addActionListener(e -> {
-            JOptionPane.showMessageDialog(dialogo, "PIKACHU utilizó CHISPA.");
-            dialogo.dispose();
-        });
-
-        panelPrincipal.add(titulo, BorderLayout.NORTH);
-        panelPrincipal.add(panelAtaques, BorderLayout.CENTER);
-
-        dialogo.add(panelPrincipal);
+        principal.add(titulo, BorderLayout.NORTH);
+        principal.add(panelAtaques, BorderLayout.CENTER);
+        dialogo.add(principal);
         dialogo.setVisible(true);
     }
 
     private void mostrarCambiarPokemon() {
-        JDialog dialogo = crearDialogo("SELECCIONAR POKÉMON", 500, 420);
+        if (!batallaDisponible()) {
+            return;
+        }
+
+        Entrenador jugador = batalla.getJugador();
+        JDialog dialogo = crearDialogo("SELECCIONAR POKÉMON", 520, 460);
 
         JPanel principal = new JPanel(new BorderLayout(10, 10));
         principal.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
@@ -346,75 +374,87 @@ public class BatallaPanel extends JPanel {
         listaPokemon.setLayout(new BoxLayout(listaPokemon, BoxLayout.Y_AXIS));
         listaPokemon.setBackground(new Color(248, 246, 232));
 
-        JRadioButton pikachu = crearOpcionPokemon("PIKACHU", 25, 100, 100, false);
-        JRadioButton bulbasaur = crearOpcionPokemon("BULBASAUR", 1, 75, 100, false);
-        JRadioButton squirtle = crearOpcionPokemon("SQUIRTLE", 7, 0, 100, true);
-
         ButtonGroup grupo = new ButtonGroup();
+        JRadioButton[] opciones = new JRadioButton[jugador.contar()];
 
-        grupo.add(pikachu);
-        grupo.add(bulbasaur);
-        grupo.add(squirtle);
-
-        pikachu.setEnabled(false);
-        squirtle.setEnabled(false);
-
-        listaPokemon.add(pikachu);
-        listaPokemon.add(Box.createVerticalStrut(8));
-        listaPokemon.add(bulbasaur);
-        listaPokemon.add(Box.createVerticalStrut(8));
-        listaPokemon.add(squirtle);
+        for (int i = 0; i < jugador.contar(); i++) {
+            Pokemon pokemon = jugador.getPokemon(i);
+            opciones[i] = crearOpcionPokemon(pokemon);
+            opciones[i].setEnabled(!pokemon.estaDerrotado() && i != jugador.getIndiceActivo());
+            grupo.add(opciones[i]);
+            listaPokemon.add(opciones[i]);
+            listaPokemon.add(Box.createVerticalStrut(6));
+        }
 
         JButton btnCambiar = crearBotonDialogo("CAMBIAR");
 
         btnCambiar.addActionListener(e -> {
-            if (bulbasaur.isSelected()) {
-                JOptionPane.showMessageDialog(dialogo, "Cambiaste a BULBASAUR.");
-                dialogo.dispose();
+            int seleccionado = indiceSeleccionado(opciones);
+
+            if (seleccionado < 0) {
+                JOptionPane.showMessageDialog(dialogo, "Selecciona otro Pokémon disponible.", "Cambio de Pokémon", JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
-            JOptionPane.showMessageDialog(dialogo, "Selecciona un Pokémon disponible.");
+            try {
+                batalla.cambiarPokemon(seleccionado);
+                dialogo.dispose();
+                despuesDeAccion();
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(dialogo, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
         });
 
         JPanel panelBoton = new JPanel();
         panelBoton.setBackground(new Color(248, 246, 232));
         panelBoton.add(btnCambiar);
 
+        JScrollPane scroll = new JScrollPane(listaPokemon);
+        scroll.setBorder(null);
+
         principal.add(titulo, BorderLayout.NORTH);
-        principal.add(listaPokemon, BorderLayout.CENTER);
+        principal.add(scroll, BorderLayout.CENTER);
         principal.add(panelBoton, BorderLayout.SOUTH);
 
         dialogo.add(principal);
         dialogo.setVisible(true);
     }
 
-    private JRadioButton crearOpcionPokemon(String nombre, int id, int vida, int vidaMaxima, boolean derrotado) {
-        String texto = nombre + "      " + vida + "/" + vidaMaxima;
+    private int indiceSeleccionado(JRadioButton[] opciones) {
+        for (int i = 0; i < opciones.length; i++) {
+            if (opciones[i].isSelected()) {
+                return i;
+            }
+        }
 
-        if (derrotado) {
-            texto += "      DERROTADO";
+        return -1;
+    }
+
+    private JRadioButton crearOpcionPokemon(Pokemon pokemon) {
+        String texto = pokemon.getNombre().toUpperCase() + "   Lv." + pokemon.getNivel() + "   " + pokemon.getHp() + "/" + pokemon.getHpMaximo();
+
+        if (pokemon.estaDerrotado()) {
+            texto += "   DERROTADO";
         }
 
         JRadioButton opcion = new JRadioButton(texto);
-        opcion.setFont(fuente(15f));
+        opcion.setFont(fuente(14f));
         opcion.setBackground(new Color(248, 246, 232));
         opcion.setForeground(new Color(45, 45, 45));
         opcion.setIconTextGap(15);
 
-        URL recurso = BatallaPanel.class.getResource("/Imagenes/" + id + ".png");
-
-        if (recurso != null) {
-            ImageIcon icono = new ImageIcon(recurso);
-            Image imagen = icono.getImage().getScaledInstance(55, 55, Image.SCALE_FAST);
-            opcion.setIcon(new ImageIcon(imagen));
-        }
+        asignarIconoPokemon(opcion, pokemon.getNombre(), 55, 55);
 
         return opcion;
     }
 
     private void mostrarObjetos() {
-        JDialog dialogo = crearDialogo("OBJETOS", 500, 380);
+        if (!batallaDisponible()) {
+            return;
+        }
+
+        Entrenador jugador = batalla.getJugador();
+        JDialog dialogo = crearDialogo("OBJETOS", 560, 450);
 
         JPanel principal = new JPanel(new BorderLayout(10, 10));
         principal.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
@@ -423,61 +463,99 @@ public class BatallaPanel extends JPanel {
         JLabel titulo = new JLabel("OBJETOS", SwingConstants.CENTER);
         titulo.setFont(fuente(18f));
 
-        JPanel opciones = new JPanel();
-        opciones.setLayout(new BoxLayout(opciones, BoxLayout.Y_AXIS));
-        opciones.setBackground(new Color(248, 246, 232));
+        JPanel centro = new JPanel(new GridLayout(1, 2, 15, 0));
+        centro.setBackground(new Color(248, 246, 232));
 
-        JRadioButton pocion = crearOpcionObjeto("POCIÓN        Recupera 20 HP");
-        JRadioButton superPocion = crearOpcionObjeto("SUPERPOCIÓN   Recupera 50 HP");
-        JRadioButton revivir = crearOpcionObjeto("REVIVIR       Recupera Pokémon");
+        JPanel panelObjetos = new JPanel();
+        panelObjetos.setLayout(new BoxLayout(panelObjetos, BoxLayout.Y_AXIS));
+        panelObjetos.setBackground(new Color(248, 246, 232));
+        panelObjetos.setBorder(BorderFactory.createTitledBorder("Objeto"));
 
-        ButtonGroup grupo = new ButtonGroup();
+        JRadioButton pocion = crearOpcionObjeto("POCIÓN x" + jugador.cantidad(Objeto.POCION) + "   +20 HP");
+        JRadioButton superPocion = crearOpcionObjeto("SUPERPOCIÓN x" + jugador.cantidad(Objeto.SUPERPOCION) + "   +50 HP");
+        JRadioButton revivir = crearOpcionObjeto("REVIVIR x" + jugador.cantidad(Objeto.REVIVIR) + "   REVIVE AL 50%");
 
-        grupo.add(pocion);
-        grupo.add(superPocion);
-        grupo.add(revivir);
+        ButtonGroup grupoObjetos = new ButtonGroup();
+        grupoObjetos.add(pocion);
+        grupoObjetos.add(superPocion);
+        grupoObjetos.add(revivir);
 
-        opciones.add(pocion);
-        opciones.add(Box.createVerticalStrut(15));
-        opciones.add(superPocion);
-        opciones.add(Box.createVerticalStrut(15));
-        opciones.add(revivir);
+        pocion.setEnabled(jugador.cantidad(Objeto.POCION) > 0);
+        superPocion.setEnabled(jugador.cantidad(Objeto.SUPERPOCION) > 0);
+        revivir.setEnabled(jugador.cantidad(Objeto.REVIVIR) > 0);
+
+        panelObjetos.add(pocion);
+        panelObjetos.add(Box.createVerticalStrut(15));
+        panelObjetos.add(superPocion);
+        panelObjetos.add(Box.createVerticalStrut(15));
+        panelObjetos.add(revivir);
+
+        JPanel panelPokemon = new JPanel();
+        panelPokemon.setLayout(new BoxLayout(panelPokemon, BoxLayout.Y_AXIS));
+        panelPokemon.setBackground(new Color(248, 246, 232));
+        panelPokemon.setBorder(BorderFactory.createTitledBorder("Pokémon"));
+
+        JRadioButton[] opcionesPokemon = new JRadioButton[jugador.contar()];
+        ButtonGroup grupoPokemon = new ButtonGroup();
+
+        for (int i = 0; i < jugador.contar(); i++) {
+            Pokemon pokemon = jugador.getPokemon(i);
+            String texto = pokemon.getNombre().toUpperCase() + " " + pokemon.getHp() + "/" + pokemon.getHpMaximo();
+
+            if (pokemon.estaDerrotado()) {
+                texto += " DERROTADO";
+            }
+
+            opcionesPokemon[i] = new JRadioButton(texto);
+            opcionesPokemon[i].setFont(fuente(12f));
+            opcionesPokemon[i].setBackground(new Color(248, 246, 232));
+
+            grupoPokemon.add(opcionesPokemon[i]);
+            panelPokemon.add(opcionesPokemon[i]);
+        }
+
+        centro.add(panelObjetos);
+        centro.add(panelPokemon);
 
         JButton btnUtilizar = crearBotonDialogo("UTILIZAR");
         JButton btnCerrar = crearBotonDialogo("CERRAR");
 
         btnUtilizar.addActionListener(e -> {
+            Objeto objeto = null;
+
             if (pocion.isSelected()) {
-                JOptionPane.showMessageDialog(dialogo, "Usaste una POCIÓN.");
-                dialogo.dispose();
+                objeto = Objeto.POCION;
+            } else if (superPocion.isSelected()) {
+                objeto = Objeto.SUPERPOCION;
+            } else if (revivir.isSelected()) {
+                objeto = Objeto.REVIVIR;
+            }
+
+            int indicePokemon = indiceSeleccionado(opcionesPokemon);
+
+            if (objeto == null || indicePokemon < 0) {
+                JOptionPane.showMessageDialog(dialogo, "Selecciona un objeto y un Pokémon.", "Objeto", JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
-            if (superPocion.isSelected()) {
-                JOptionPane.showMessageDialog(dialogo, "Usaste una SUPERPOCIÓN.");
+            try {
+                batalla.usarObjeto(objeto, indicePokemon);
                 dialogo.dispose();
-                return;
+                despuesDeAccion();
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(dialogo, ex.getMessage(), "No se puede utilizar el objeto", JOptionPane.ERROR_MESSAGE);
             }
-
-            if (revivir.isSelected()) {
-                JOptionPane.showMessageDialog(dialogo, "Usaste REVIVIR.");
-                dialogo.dispose();
-                return;
-            }
-
-            JOptionPane.showMessageDialog(dialogo, "Selecciona un objeto.");
         });
 
         btnCerrar.addActionListener(e -> dialogo.dispose());
 
         JPanel botones = new JPanel();
         botones.setBackground(new Color(248, 246, 232));
-
         botones.add(btnUtilizar);
         botones.add(btnCerrar);
 
         principal.add(titulo, BorderLayout.NORTH);
-        principal.add(opciones, BorderLayout.CENTER);
+        principal.add(centro, BorderLayout.CENTER);
         principal.add(botones, BorderLayout.SOUTH);
 
         dialogo.add(principal);
@@ -486,16 +564,20 @@ public class BatallaPanel extends JPanel {
 
     private JRadioButton crearOpcionObjeto(String texto) {
         JRadioButton opcion = new JRadioButton(texto);
-
-        opcion.setFont(fuente(15f));
+        opcion.setFont(fuente(13f));
         opcion.setBackground(new Color(248, 246, 232));
         opcion.setForeground(new Color(45, 45, 45));
-
         return opcion;
     }
 
     private void mostrarEquipo() {
-        JDialog dialogo = crearDialogo("MI EQUIPO", 520, 420);
+        if (batalla == null) {
+            JOptionPane.showMessageDialog(this, "No hay una batalla activa.");
+            return;
+        }
+
+        Entrenador jugador = batalla.getJugador();
+        JDialog dialogo = crearDialogo("MI EQUIPO", 580, 470);
 
         JPanel principal = new JPanel(new BorderLayout(10, 10));
         principal.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
@@ -508,97 +590,25 @@ public class BatallaPanel extends JPanel {
         lista.setLayout(new BoxLayout(lista, BoxLayout.Y_AXIS));
         lista.setBackground(new Color(248, 246, 232));
 
-        lista.add(crearFilaEquipo("PIKACHU", 25, 15, 100, 100, false));
-        lista.add(Box.createVerticalStrut(8));
+        for (int i = 0; i < jugador.contar(); i++) {
+            Pokemon pokemon = jugador.getPokemon(i);
+            lista.add(crearFilaEquipo(pokemon, i == jugador.getIndiceActivo()));
+            lista.add(Box.createVerticalStrut(6));
+        }
 
-        lista.add(crearFilaEquipo("BULBASAUR", 1, 15, 75, 100, false));
-        lista.add(Box.createVerticalStrut(8));
-
-        lista.add(crearFilaEquipo("SQUIRTLE", 7, 15, 0, 100, true));
-
-        JLabel disponibles = new JLabel("POKÉMON DISPONIBLES: 2");
-        disponibles.setFont(fuente(15f));
+        JLabel disponibles = new JLabel("POKÉMON DISPONIBLES: " + jugador.disponibles());
+        disponibles.setFont(fuente(14f));
 
         JButton cerrar = crearBotonDialogo("CERRAR");
         cerrar.addActionListener(e -> dialogo.dispose());
 
         JPanel inferior = new JPanel(new BorderLayout());
         inferior.setBackground(new Color(248, 246, 232));
-
         inferior.add(disponibles, BorderLayout.WEST);
         inferior.add(cerrar, BorderLayout.EAST);
 
-        principal.add(titulo, BorderLayout.NORTH);
-        principal.add(lista, BorderLayout.CENTER);
-        principal.add(inferior, BorderLayout.SOUTH);
-
-        dialogo.add(principal);
-        dialogo.setVisible(true);
-    }
-
-    private JPanel crearFilaEquipo(String nombre, int id, int nivel, int vida, int vidaMaxima, boolean derrotado) {
-        JPanel fila = new JPanel(new BorderLayout(10, 5));
-        fila.setBackground(new Color(248, 246, 232));
-
-        JLabel imagen = new JLabel();
-
-        URL recurso = BatallaPanel.class.getResource("/Imagenes/" + id + ".png");
-
-        if (recurso != null) {
-            ImageIcon icono = new ImageIcon(recurso);
-            Image sprite = icono.getImage().getScaledInstance(55, 55, Image.SCALE_FAST);
-            imagen.setIcon(new ImageIcon(sprite));
-        }
-
-        String texto = nombre + "     Lv." + nivel + "     " + vida + "/" + vidaMaxima;
-
-        if (derrotado) {
-            texto += "     DERROTADO";
-        }
-
-        JLabel informacion = new JLabel(texto);
-        informacion.setFont(fuente(14f));
-
-        fila.add(imagen, BorderLayout.WEST);
-        fila.add(informacion, BorderLayout.CENTER);
-
-        return fila;
-    }
-
-    private void mostrarHistorial() {
-        JDialog dialogo = crearDialogo("HISTORIAL DE BATALLA", 520, 400);
-
-        JPanel principal = new JPanel(new BorderLayout(10, 10));
-        principal.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
-        principal.setBackground(new Color(248, 246, 232));
-
-        JLabel titulo = new JLabel("HISTORIAL DE BATALLA", SwingConstants.CENTER);
-        titulo.setFont(fuente(18f));
-
-        JTextArea historial = new JTextArea();
-
-        historial.setEditable(false);
-        historial.setFont(fuente(14f));
-        historial.setBackground(new Color(248, 246, 232));
-        historial.setForeground(new Color(45, 45, 45));
-
-        historial.setText(
-                "Turno 1\n"
-                + "PIKACHU utilizó IMPACTRUENO.\n"
-                + "CHARMANDER perdió 25 HP.\n\n"
-                + "Turno 1\n"
-                + "CHARMANDER utilizó ASCUAS.\n"
-                + "PIKACHU perdió 15 HP.\n"
-        );
-
-        JScrollPane scroll = new JScrollPane(historial);
-
-        JButton cerrar = crearBotonDialogo("CERRAR");
-        cerrar.addActionListener(e -> dialogo.dispose());
-
-        JPanel inferior = new JPanel();
-        inferior.setBackground(new Color(248, 246, 232));
-        inferior.add(cerrar);
+        JScrollPane scroll = new JScrollPane(lista);
+        scroll.setBorder(null);
 
         principal.add(titulo, BorderLayout.NORTH);
         principal.add(scroll, BorderLayout.CENTER);
@@ -608,33 +618,152 @@ public class BatallaPanel extends JPanel {
         dialogo.setVisible(true);
     }
 
+    private JPanel crearFilaEquipo(Pokemon pokemon, boolean activo) {
+        JPanel fila = new JPanel(new BorderLayout(10, 5));
+        fila.setBackground(new Color(248, 246, 232));
+
+        JLabel imagen = new JLabel();
+        asignarIconoPokemon(imagen, pokemon.getNombre(), 55, 55);
+
+        String texto = pokemon.getNombre().toUpperCase() + "   Lv." + pokemon.getNivel() + "   " + pokemon.getTipo() + "   " + pokemon.getHp() + "/" + pokemon.getHpMaximo();
+
+        if (pokemon.estaDerrotado()) {
+            texto += "   DERROTADO";
+        } else if (activo) {
+            texto += "   ACTIVO";
+        }
+
+        JLabel informacion = new JLabel(texto);
+        informacion.setFont(fuente(13f));
+
+        fila.add(imagen, BorderLayout.WEST);
+        fila.add(informacion, BorderLayout.CENTER);
+
+        return fila;
+    }
+
+    private void mostrarHistorial() {
+        if (batalla == null) {
+            JOptionPane.showMessageDialog(this, "Todavía no hay una batalla activa.");
+            return;
+        }
+
+        JDialog dialogo = crearDialogo("HISTORIAL DE BATALLA", 560, 430);
+
+        JPanel principal = new JPanel(new BorderLayout(10, 10));
+        principal.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        principal.setBackground(new Color(248, 246, 232));
+
+        JLabel titulo = new JLabel("HISTORIAL DE BATALLA", SwingConstants.CENTER);
+        titulo.setFont(fuente(18f));
+
+        JTextArea area = new JTextArea();
+        area.setEditable(false);
+        area.setFont(fuente(13f));
+        area.setBackground(new Color(248, 246, 232));
+        area.setForeground(new Color(45, 45, 45));
+        area.setLineWrap(true);
+        area.setWrapStyleWord(true);
+
+        ListaEnlazada<Batalla.Evento> historial = batalla.getHistorial();
+        StringBuilder texto = new StringBuilder();
+
+        for (Batalla.Evento evento : historial) {
+            texto.append("Turno ");
+            texto.append(evento.ronda());
+            texto.append("\n");
+            texto.append(evento.mensaje());
+            texto.append("\n\n");
+        }
+
+        if (texto.length() == 0) {
+            texto.append("Todavía no se han realizado acciones.");
+        }
+
+        area.setText(texto.toString());
+        area.setCaretPosition(0);
+
+        JButton cerrar = crearBotonDialogo("CERRAR");
+        cerrar.addActionListener(e -> dialogo.dispose());
+
+        JPanel inferior = new JPanel();
+        inferior.setBackground(new Color(248, 246, 232));
+        inferior.add(cerrar);
+
+        principal.add(titulo, BorderLayout.NORTH);
+        principal.add(new JScrollPane(area), BorderLayout.CENTER);
+        principal.add(inferior, BorderLayout.SOUTH);
+
+        dialogo.add(principal);
+        dialogo.setVisible(true);
+    }
+
+    private void despuesDeAccion() {
+        actualizarBatalla();
+
+        if (batalla.getResultado() == Batalla.Resultado.EN_CURSO) {
+            return;
+        }
+
+        Batalla.Estadisticas estadisticas = batalla.getEstadisticas();
+        String resultado;
+
+        if (batalla.getResultado() == Batalla.Resultado.VICTORIA) {
+            resultado = "¡GANASTE LA BATALLA!";
+        } else {
+            resultado = "HAS PERDIDO LA BATALLA";
+        }
+
+        String mensaje = resultado + "\n\nRondas: " + estadisticas.rondas() + "\nDaño causado: " + estadisticas.danoJugador() + "\nDaño recibido: " + estadisticas.danoRival() + "\nObjetos usados: " + estadisticas.objetosJugador() + "\nPokémon rivales derrotados: " + estadisticas.derrotadosRival();
+
+        Object[] opciones = {"REINICIAR", "NUEVO EQUIPO", "CERRAR"};
+
+        int opcion = JOptionPane.showOptionDialog(this, mensaje, "FIN DE LA BATALLA", JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, opciones, opciones[0]);
+
+        if (opcion == 0) {
+            batalla.reiniciar();
+            actualizarBatalla();
+        } else if (opcion == 1) {
+            Sesion.getInstancia().limpiarBatalla();
+            ventana.mostrarSeleccion();
+        }
+    }
+
+    private boolean batallaDisponible() {
+        if (batalla == null) {
+            JOptionPane.showMessageDialog(this, "No hay una batalla activa.");
+            return false;
+        }
+
+        if (batalla.getResultado() != Batalla.Resultado.EN_CURSO) {
+            JOptionPane.showMessageDialog(this, "La batalla ya terminó.");
+            return false;
+        }
+
+        return true;
+    }
+
     private JDialog crearDialogo(String titulo, int ancho, int alto) {
         Window ventanaPadre = SwingUtilities.getWindowAncestor(this);
-
         JDialog dialogo = new JDialog(ventanaPadre, titulo, Dialog.ModalityType.APPLICATION_MODAL);
-
         dialogo.setSize(ancho, alto);
         dialogo.setLocationRelativeTo(this);
         dialogo.setResizable(false);
-
         return dialogo;
     }
 
     private JButton crearBotonDialogo(String texto) {
         JButton boton = new JButton(texto);
-
-        boton.setFont(fuente(15f));
+        boton.setFont(fuente(14f));
         boton.setBackground(new Color(248, 246, 232));
         boton.setForeground(new Color(45, 45, 45));
         boton.setFocusPainted(false);
         boton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
         return boton;
     }
 
     private JLabel cargarImagen(String ruta, int ancho, int alto) {
         JLabel label = new JLabel();
-
         URL recurso = BatallaPanel.class.getResource(ruta);
 
         if (recurso == null) {
@@ -644,18 +773,13 @@ public class BatallaPanel extends JPanel {
 
         ImageIcon icono = new ImageIcon(recurso);
         Image imagen = icono.getImage().getScaledInstance(ancho, alto, Image.SCALE_SMOOTH);
-
         label.setIcon(new ImageIcon(imagen));
 
         return label;
     }
 
-    private JLabel crearSprite(int id, boolean espalda) {
-        JLabel label = new JLabel();
-
-        label.setHorizontalAlignment(SwingConstants.CENTER);
-        label.setVerticalAlignment(SwingConstants.CENTER);
-
+    private void ponerSprite(JLabel label, String nombre, boolean espalda) {
+        int id = idPokemon(nombre);
         String ruta;
 
         if (espalda) {
@@ -667,19 +791,62 @@ public class BatallaPanel extends JPanel {
         URL recurso = BatallaPanel.class.getResource(ruta);
 
         if (recurso == null) {
-            System.out.println("No se encontró: " + ruta);
-
+            label.setIcon(null);
             label.setText("NO ENCONTRADA");
-            label.setForeground(Color.RED);
-
-            return label;
+            return;
         }
+
+        label.setText("");
 
         ImageIcon icono = new ImageIcon(recurso);
         Image imagen = icono.getImage().getScaledInstance(240, 240, Image.SCALE_FAST);
-
         label.setIcon(new ImageIcon(imagen));
+    }
 
-        return label;
+    private void asignarIconoPokemon(AbstractButton componente, String nombre, int ancho, int alto) {
+        URL recurso = BatallaPanel.class.getResource("/Imagenes/" + idPokemon(nombre) + ".png");
+
+        if (recurso != null) {
+            ImageIcon icono = new ImageIcon(recurso);
+            Image imagen = icono.getImage().getScaledInstance(ancho, alto, Image.SCALE_FAST);
+            componente.setIcon(new ImageIcon(imagen));
+        }
+    }
+
+    private void asignarIconoPokemon(JLabel componente, String nombre, int ancho, int alto) {
+        URL recurso = BatallaPanel.class.getResource("/Imagenes/" + idPokemon(nombre) + ".png");
+
+        if (recurso != null) {
+            ImageIcon icono = new ImageIcon(recurso);
+            Image imagen = icono.getImage().getScaledInstance(ancho, alto, Image.SCALE_FAST);
+            componente.setIcon(new ImageIcon(imagen));
+        }
+    }
+
+    private int idPokemon(String nombre) {
+        switch (nombre.toLowerCase()) {
+            case "bulbasaur":
+                return 1;
+            case "charmander":
+                return 4;
+            case "squirtle":
+                return 7;
+            case "pikachu":
+                return 25;
+            case "vulpix":
+                return 37;
+            case "psyduck":
+                return 54;
+            case "geodude":
+                return 74;
+            case "gastly":
+                return 92;
+            case "chikorita":
+                return 152;
+            case "mareep":
+                return 179;
+            default:
+                return 25;
+        }
     }
 }

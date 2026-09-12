@@ -104,6 +104,20 @@ public class TarjetaPokemon extends JPanel {
             btnAgregar.setText("AGREGAR");
         }
     }
+    
+    public void setSeleccionado(boolean seleccionado) {
+        this.seleccionado = seleccionado;
+
+        if (seleccionado) {
+            setBackground(new Color(255, 244, 190));
+            setBorder(new LineBorder(new Color(230, 170, 30), 5));
+            btnAgregar.setText("QUITAR");
+        } else {
+            setBackground(Color.WHITE);
+            setBorder(new LineBorder(new Color(50, 90, 70), 3));
+            btnAgregar.setText("AGREGAR");
+        }
+    }
 
     public boolean isSeleccionado() {
         return seleccionado;

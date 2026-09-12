@@ -61,7 +61,10 @@ public final class Entrenador {
         if (pokemon == null) {
             throw new IllegalArgumentException("Pokémon nulo");
         }
-
+        
+        if (equipo.contar() >= 4) {
+            throw new IllegalArgumentException("El equipo no puede tener más de 4 Pokémon");
+        }
         equipo.insertar(pokemon.copiar());
 
         if (activo < 0 && !pokemon.estaDerrotado()) {
